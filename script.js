@@ -1,7 +1,13 @@
 // Redirect when typing 1, 2, 3, 4 anywhere
 document.addEventListener("keydown", (e) => {
-  if (["1", "2", "3", "4"].includes(e.key)) {
-    window.location.href = `${e.key}.html`;
+  if (e.key === "1") {
+    window.location.href = "1.html";
+  } else if (e.key === "2") {
+    window.location.href = "2.html";
+  } else if (e.key === "3") {
+    window.location.href = "3.html";
+  } else if (e.key === "4") {
+    window.location.href = "oshinoko\index.html";
   }
 });
 
@@ -46,3 +52,4 @@ window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
