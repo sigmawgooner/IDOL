@@ -7,7 +7,7 @@ document.addEventListener("keydown", (e) => {
   } else if (e.key === "3") {
     window.location.href = "3.html";
   } else if (e.key === "4") {
-    window.location.href = "oshinoko/index.html";
+    window.location.href = "https://renai-circulation.freeddns.org";
   }
 });
 
@@ -52,5 +52,6 @@ window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
 
 
