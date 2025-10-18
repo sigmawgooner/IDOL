@@ -1,7 +1,7 @@
 // Redirect when typing 1, 2, 3, 4 anywhere
 document.addEventListener("keydown", (e) => {
   if (e.key === "1") {
-    window.location.href = "api/index.html";
+    window.location.href = "AI/index.html";
   } else if (e.key === "2") {
     window.location.href = "2.html";
   } else if (e.key === "3") {
@@ -52,6 +52,7 @@ window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
 
 
 
