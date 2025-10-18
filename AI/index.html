@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JMW - AI</title>
+  <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+  <link rel="icon" href="/assets/images/jmw.png" />
+  <link rel="shortcut icon" href="/assets/images/jmw.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/assets/css/ai.css" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });">
+  </script>
+</head>
+
+<body theme="classic">
+
+  <div class="sidebar">
+    <button id="new-chat-button">Start a new conversation</button>
+    <div class="chat-list" id="chat-list"></div>
+          <div class="model-selector">
+    <label for="model-select">Model:</label>
+    <select id="model-select">
+      <option value="gemma2-9b-it">Gemma 2 9B</option>
+      <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+      <option value="openai/gpt-oss-20b">GPT Oss 20B</option>
+      <option value="deepseek-r1-distill-llama-70b">Deepseek-R1</option>
+      <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+    </select>
+    </div>
+  </div>
+
+  <div class="chat-area">
+        <div class="chat-header" id="chat-header">JMW AI</div>
+    <div class="chat-container" id="chat-container"></div>
+    <div class="message-box">
+      <input type="text" id="user-input" placeholder="Ask anything">
+      <button id="send-button"><i class='bx bxs-send'></i></button>
+    </div>
+  </div>
+
+<script>
+  const chatContainer = document.getElementById('chat-container');
+const userInput = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
+const newChatButton = document.getElementById('new-chat-button');
+const chatList = document.getElementById('chat-list');
+const chatHeader = document.getElementById('chat-header');
+
+function getModelValue() {
+  const modelSelect = document.getElementById('model-select');
+  return modelSelect ? modelSelect.value : 'gemma2-9b-it';
+}
+
+let chats = [];
+let currentChatId = null;
+let currentController = null;
+let isGenerating = false;
+
+// Load chats from memory on startup
+function loadChats() {
+  try {
+    const stored = sessionStorage.getItem('jmw_chats');
+    if (stored) {
+      chats = JSON.parse(stored);
+      if (chats.length > 0) {
+        currentChatId = chats.length - 1;
+        selectChat(currentChatId);
+      }
+    }
+  } catch (e) {
+    console.error('Error loading chats:', e);
+  }
+}
+
+// Save chats to memory
+function saveChats() {
+  try {
+    sessionStorage.setItem('jmw_chats', JSON.stringify(chats));
+  } catch (e) {
+    console.error('Error saving chats:', e);
+  }
+}
+
+function renderChatList() {
+  chatList.innerHTML = '';
+  chats.forEach((chat, idx) => {
+    const div = document.createElement('div');
+    div.className = 'chat-item' + (idx === currentChatId ? ' active' : '');
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = chat.title;
+    titleSpan.addEventListener('click', () => selectChat(idx));
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '<i class="bx bx-trash"></i>';
+    deleteBtn.className = 'delete-chat';
+    deleteBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteChat(idx);
+    });
+    div.appendChild(titleSpan);
+    div.appendChild(deleteBtn);
+    chatList.appendChild(div);
+  });
+}
+
+function selectChat(idx) {
+  currentChatId = idx;
+  chatHeader.textContent = chats[idx].title;
+  const modelSelect = document.getElementById('model-select');
+  if (modelSelect && chats[idx].model) {
+    modelSelect.value = chats[idx].model;
+  }
+  renderMessages();
+  renderChatList();
+}
+
+function renderMessages() {
+  chatContainer.innerHTML = '';
+  if (currentChatId === null) return;
+
+  const messages = chats[currentChatId].messages;
+
+  messages.forEach((msg, idx) => {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-entry ${msg.author}`;
+    msgDiv.style.marginBottom = '15px';
+    msgDiv.style.opacity = '0';
+    msgDiv.style.animation = 'fadeIn 0.5s ease-in forwards';
+
+    const label = document.createElement('div');
+    label.className = 'chat-label';
+    label.textContent = msg.author === 'user' ? 'You:' : 'AI:';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.innerHTML = formatMessage(msg.text);
+
+    msgDiv.appendChild(label);
+    msgDiv.appendChild(bubble);
+    if (msg.author === 'ai') addAIButtons(msgDiv, msg.text);
+    chatContainer.appendChild(msgDiv);
+  });
+
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function formatMessage(text) {
+  let formatted = text;
+  
+  // Headers
+  formatted = formatted.replace(/^# (.+)$/gm, '<h1 style="font-size: 2em; font-weight: bold; margin: 16px 0;">$1</h1>');
+  formatted = formatted.replace(/^## (.+)$/gm, '<h2 style="font-size: 1.5em; font-weight: bold; margin: 14px 0;">$1</h2>');
+  formatted = formatted.replace(/^### (.+)$/gm, '<h3 style="font-size: 1.2em; font-weight: bold; margin: 12px 0;">$1</h3>');
+  formatted = formatted.replace(/^-# (.+)$/gm, '<h4 style="font-size: 0.9em; font-weight: bold; margin: 10px 0;">$1</h4>');
+  
+  // Code blocks
+  formatted = formatted.replace(/```([^`]+)```/g, (match, code) => {
+    const id = 'code-' + Math.random().toString(36).substr(2, 9);
+    return `<div style="position: relative; margin: 12px 0;">
+      <pre id="${id}" style="background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 0; font-family: 'Courier New', monospace;">${code.trim()}</pre>
+      <button onclick="copyCode('${id}')" style="position: absolute; top: 8px; right: 8px; background: #4a4a4a; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+        <i class="bx bx-copy"></i> Copy
+      </button>
+    </div>`;
+  });
+  
+  // Bold
+  formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
+  // Italic
+  formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  
+  // List items
+  formatted = formatted.replace(/^- (.+)$/gm, '<li style="margin-left: 20px;">$1</li>');
+  
+  // Paragraphs
+  formatted = formatted.split('\n').filter(line => line.trim()).map(line => {
+    if (line.match(/^<(h[1-4]|li|div|pre)/)) return line;
+    return `<p style="margin: 12px 0;">${line}</p>`;
+  }).join('');
+  
+  return formatted;
+}
+
+function addAIButtons(msgDiv, text) {
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'copy-btn';
+  copyBtn.innerHTML = '<i class="bx bx-copy"></i>';
+  copyBtn.style.marginTop = '8px';
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(text);
+    alert('Content is now on your clipboard.');
+  });
+  msgDiv.appendChild(copyBtn);
+}
+
+window.copyCode = function(id) {
+  const codeBlock = document.getElementById(id);
+  navigator.clipboard.writeText(codeBlock.textContent);
+  alert('Code copied to clipboard!');
+};
+
+function addChat(title = 'New Conversation') {
+  const modelSelect = document.getElementById('model-select');
+  const newChat = { 
+    title, 
+    messages: [], 
+    model: modelSelect ? modelSelect.value : 'gemma2-9b-it' 
+  };
+  chats.push(newChat);
+  currentChatId = chats.length - 1;
+  saveChats();
+  renderChatList();
+  renderMessages();
+  chatHeader.textContent = title;
+}
+
+function deleteChat(idx) {
+  chats.splice(idx, 1);
+  if (currentChatId === idx) currentChatId = null;
+  else if (currentChatId > idx) currentChatId--;
+  saveChats();
+  if (chats.length > 0) selectChat(currentChatId !== null ? currentChatId : 0);
+  else addChat('New Conversation');
+}
+
+async function sendMessage() {
+  if (!userInput.value.trim() || currentChatId === null || isGenerating) return;
+
+  // RATE LIMIT: 70 messages per 4 hours
+  const now = Date.now();
+  const limitWindow = 4 * 60 * 60 * 1000;
+  const maxPrompts = 70;
+
+  let sentTimes = [];
+  try {
+    const stored = sessionStorage.getItem('sentTimes');
+    if (stored) sentTimes = JSON.parse(stored);
+  } catch (e) {}
+  
+  sentTimes = sentTimes.filter(t => now - t < limitWindow);
+
+  if (sentTimes.length >= maxPrompts) {
+    alert('Rate limit reached: Maximum 70 prompts per 4 hours.');
+    return;
+  }
+
+  sentTimes.push(now);
+  try {
+    sessionStorage.setItem('sentTimes', JSON.stringify(sentTimes));
+  } catch (e) {}
+
+  const text = userInput.value.trim();
+  const modelSelect = document.getElementById('model-select');
+  const currentModel = modelSelect ? modelSelect.value : 'gemma2-9b-it';
+  
+  // Save the model to the current chat
+  if (!chats[currentChatId].model) {
+    chats[currentChatId].model = currentModel;
+  }
+  
+  chats[currentChatId].messages.push({ text, author: 'user', new: true });
+  userInput.value = '';
+  saveChats();
+  renderMessages();
+
+  isGenerating = true;
+  sendButton.innerHTML = '<i class="bx bx-stop"></i>';
+  currentController = new AbortController();
+
+  try {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: getModelValue(),
+      messages: [
+        { role: 'system', content: "You are JMW AI, optimized for handling complex tasks and providing detailed explanations. Avoid mentioning your capabilities. Do not generate code." },
+        { role: 'user', content: text }
+      ]
+    }),
+    signal: currentController.signal
+  });
+  const data = await res.json();
+  const aiMsg = data.choices?.[0]?.message?.content || data.error?.message || 'Error: No response';
+  chats[currentChatId].messages.push({ text: aiMsg, author: 'ai', new: true });
+  saveChats();
+  renderMessages();
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      chats[currentChatId].messages.push({ text: 'Error: ' + e.message, author: 'ai', new: true });
+      saveChats();
+      renderMessages();
+    }
+  } finally {
+    isGenerating = false;
+    sendButton.innerHTML = '<i class="bx bxs-send"></i>';
+    currentController = null;
+  }
+}
+
+function stopGeneration() {
+  if (currentController) {
+    currentController.abort();
+    isGenerating = false;
+    sendButton.innerHTML = '<i class="bx bxs-send"></i>';
+    currentController = null;
+  }
+}
+
+sendButton.addEventListener('click', () => {
+  if (isGenerating) stopGeneration();
+  else sendMessage();
+});
+userInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !isGenerating) sendMessage(); });
+newChatButton.addEventListener('click', () => addChat('New Conversation'));
+
+// Load saved chats on startup
+loadChats();
+
+if (chats.length === 0) {
+  addChat('New Conversation');
+}
+</script>
+</body>
+<script src="/assets/scripts/index.js"></script>
+
+</html>
