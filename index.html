@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pibblock</title>
-  <link rel="preload" href="fonts/aniblock.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="aniblock.ttf" as="font" type="font/ttf" crossorigin="anonymous">
   <style>
     @font-face {
       font-family: 'aniblock';
@@ -29,7 +29,6 @@
       perspective: 1000px;
     }
 
-    /* Animated gradient wave background */
     .animated-bg {
       position: absolute;
       inset: 0;
@@ -44,7 +43,6 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Floating glow wave */
     .bg-glow {
       position: absolute;
       inset: 0;
@@ -58,14 +56,12 @@
       100% { transform: scale(1.3) translateY(-30px); opacity: 1; }
     }
 
-    /* Particles canvas */
     canvas#particles {
       position: absolute;
       inset: 0;
       z-index: 0;
     }
 
-    /* Title */
     .title {
       font-size: clamp(3.5rem, 6vw, 6rem);
       color: #e4aaff;
@@ -84,18 +80,13 @@
       background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
       animation: shine 6s infinite;
     }
-
-    @keyframes shine {
-      0% { left: -75%; }
-      100% { left: 125%; }
-    }
+    @keyframes shine { 0% { left: -75%; } 100% { left: 125%; } }
     @keyframes glowPulse {
       0%, 100% { text-shadow: 0 0 25px #a200ff, 0 0 50px #a200ff, 0 0 100px #a200ff; }
       50% { text-shadow: 0 0 40px #c94fff, 0 0 80px #c94fff, 0 0 140px #c94fff; }
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Subtitle */
     .subtitle {
       font-size: 1.2rem;
       color: #c8a4ff;
@@ -105,19 +96,18 @@
       animation: fadeIn 2s ease-out forwards;
     }
 
-    /* Container for image + buttons */
+    /* Container with logo and buttons */
     .container {
       z-index: 2;
       margin-top: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 150px; /* space for side buttons */
+      gap: 60px; /* space between groups and image */
       animation: fadeIn 2s ease-out forwards;
       position: relative;
     }
 
-    /* Logo */
     .logo {
       width: clamp(250px, 35vw, 420px);
       border-radius: 20px;
@@ -127,7 +117,15 @@
     }
     .logo:hover { transform: scale(1.1) rotate(3deg); filter: drop-shadow(0 0 60px #d470ff); }
 
-    /* Buttons */
+    /* Button groups */
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+    .button-group.left { margin-right: 20px; }
+    .button-group.right { margin-left: 20px; }
+
     .btn {
       background: linear-gradient(135deg, #a200ff, #d470ff);
       border: none;
@@ -137,7 +135,7 @@
       color: white;
       text-transform: uppercase;
       cursor: pointer;
-      border-radius: 50% 20% 50% 20% / 30% 50% 30% 50%; /* cool custom shape */
+      border-radius: 50% 20% 50% 20% / 30% 50% 30% 50%;
       box-shadow: 0 0 25px #a200ff80;
       transition: all 0.3s ease;
       z-index: 2;
@@ -168,9 +166,17 @@
   <p class="subtitle" id="subtitle"></p>
 
   <div class="container">
-    <button class="btn" id="leftBtn">Explore</button>
+    <div class="button-group left">
+      <button class="btn">Explore</button>
+      <button class="btn">About</button>
+    </div>
+
     <img class="logo" src="xuancuong.gif" alt="Pibblock logo">
-    <button class="btn" id="rightBtn">Contact</button>
+
+    <div class="button-group right">
+      <button class="btn">Projects</button>
+      <button class="btn">Contact</button>
+    </div>
   </div>
 
   <footer>© 2025 Pibblock • All Rights Reserved</footer>
@@ -188,7 +194,7 @@
     }
     window.onload = type;
 
-    // Glowing particles
+    // Particles
     const canvas = document.getElementById("particles");
     const ctx = canvas.getContext("2d");
     canvas.width = innerWidth;
@@ -218,16 +224,17 @@
     }
     drawParticles();
 
-    // Mouse-based depth (3D tilt)
+    // Mouse 3D tilt
     document.addEventListener("mousemove", e => {
       const x = (e.clientX / window.innerWidth - 0.5) * 10;
       const y = (e.clientY / window.innerHeight - 0.5) * 10;
       document.querySelector(".container").style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
     });
 
-    // Example button interactions
-    document.getElementById("leftBtn").onclick = () => alert("Explore clicked!");
-    document.getElementById("rightBtn").onclick = () => alert("Contact clicked!");
+    // Button example actions
+    document.querySelectorAll(".btn").forEach(btn => {
+      btn.addEventListener("click", () => alert(`${btn.textContent} clicked!`));
+    });
   </script>
 </body>
 </html>
