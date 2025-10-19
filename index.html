@@ -4,17 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pibblock</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Reset + Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <!-- preload custom font -->
-  <link rel="preload" href="fonts/aniblock.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+    body {
+      font-family: 'aniblock', Arial, sans-serif;
+      background: radial-gradient(circle at top, #0a0a0a 0%, #000 100%);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    /* Glowing animated title */
+    .title {
+      font-size: 5rem;
+      letter-spacing: 2px;
+      margin-top: 60px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 15px #0ff, 0 0 30px #0ff, 0 0 60px #0ff;
+      animation: glowPulse 2.5s ease-in-out infinite;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .title:hover {
+      transform: scale(1.05);
+      text-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 80px #00ffff;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        text-shadow: 0 0 15px #0ff, 0 0 30px #0ff, 0 0 60px #0ff;
+      }
+      50% {
+        text-shadow: 0 0 30px #00faff, 0 0 60px #00faff, 0 0 90px #00faff;
+      }
+    }
+
+    /* Center container */
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+    }
+
+    /* Logo styling */
+    .logo {
+      width: 180px;
+      height: auto;
+      border-radius: 12px;
+      transition: transform 0.5s ease, filter 0.5s ease;
+      filter: drop-shadow(0 0 20px #00ffff88);
+    }
+
+    .logo:hover {
+      transform: scale(1.1) rotate(5deg);
+      filter: drop-shadow(0 0 35px #00ffffcc);
+    }
+
+    /* Optional subtle animation background */
+    .bg-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: radial-gradient(circle at center, rgba(0,255,255,0.1) 0%, transparent 70%);
+      animation: floatGlow 6s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    @keyframes floatGlow {
+      0% {
+        transform: scale(1) translateY(0);
+      }
+      100% {
+        transform: scale(1.1) translateY(-10px);
+      }
+    }
+
+    /* Ensure elements above background */
+    .title, .container {
+      z-index: 1;
+    }
+  </style>
 </head>
 <body>
+  <div class="bg-glow"></div>
+  <h1 class="title">Pibblock</h1>
+
   <div class="container">
     <img class="logo" src="xuancuong.gif" alt="Pibblock logo">
-    <h1 class="title">Pibblock</h1>
   </div>
-
-  <script src="script.js"></script>
 </body>
 </html>
