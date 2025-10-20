@@ -1925,63 +1925,66 @@
                         btn.value = file;
                         btn.onclick = () => {
                             fetch(`https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile/${file}.html?t=${Date.now()}`)
-                                .then(response => response.text())
-                                .then(text => {
-                                    const newWin = window.open();
-                                    if (newWin) {
-                                        newWin.document.open();
-                                        newWin.document.write(text);
-                                        newWin.document.close();
-                                    }
-                                });
-                        };
-                        btn.style.width = '100%';
-                        btn.style.height = '100%';
-                        btn.style.fontSize = '100';
-                        buttonsContainer.appendChild(btn);
-                    });
-                } else {
-                    section.classList.add('empty');
-                    const emptyMsg = document.createElement('div');
-                    emptyMsg.className = 'empty-message';
-                    emptyMsg.textContent = 'No files';
-                    buttonsContainer.appendChild(emptyMsg);
+                          .then(response => response.text())
+.then(text => {
+    // Open in a proper new tab
+    const newWin = window.open('', '_blank'); // specify '_blank' to ensure a new tab
+    if (newWin) {
+        newWin.document.open();
+        newWin.document.write(text);
+        newWin.document.close();
+    } else {
+        console.error('Failed to open new tab. Popup blocked?');
+    }
+});
+btn.style.width = '100%';
+btn.style.height = '100%';
+btn.style.fontSize = '100';
+buttonsContainer.appendChild(btn);
+});
+} else {
+    section.classList.add('empty');
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'empty-message';
+    emptyMsg.textContent = 'No files';
+    buttonsContainer.appendChild(emptyMsg);
+}
+
+section.appendChild(buttonsContainer);
+container.appendChild(section);
+});
+
+// Generate sidebar
+generateSidebar(allChars, filesByChar);
+}
+
+function generateSidebar(allChars, filesByChar) {
+    const sidebar = document.getElementById('sidebar');
+    
+    allChars.forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'sidebar-btn';
+        btn.textContent = char;
+        
+        if (filesByChar[char].length === 0) {
+            btn.classList.add('empty');
+        } else {
+            btn.onclick = () => {
+                const section = document.getElementById(`section-${char}`);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-
-                section.appendChild(buttonsContainer);
-                container.appendChild(section);
-            });
-
-            // Generate sidebar
-            generateSidebar(allChars, filesByChar);
+            };
         }
+        
+        sidebar.appendChild(btn);
+    });
+}
 
-        function generateSidebar(allChars, filesByChar) {
-            const sidebar = document.getElementById('sidebar');
-            
-            allChars.forEach(char => {
-                const btn = document.createElement('button');
-                btn.className = 'sidebar-btn';
-                btn.textContent = char;
-                
-                if (filesByChar[char].length === 0) {
-                    btn.classList.add('empty');
-                } else {
-                    btn.onclick = () => {
-                        const section = document.getElementById(`section-${char}`);
-                        if (section) {
-                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    };
-                }
-                
-                sidebar.appendChild(btn);
-            });
-        }
-
-        // Generate everything on page load
-        window.addEventListener('DOMContentLoaded', generateAllSections);
+// Generate everything on page load
+window.addEventListener('DOMContentLoaded', generateAllSections);
     </script>
 </body>
 </html>
 	
+
