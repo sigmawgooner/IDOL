@@ -181,15 +181,15 @@ footer {
 
 <div class="container">
   <div class="button-group left">
-    <button class="btn">Explore</button>
-    <button class="btn">About</button>
+    <a href="4.html"><button class="btn">Games</button></a>
+    <a href="2.html"><button class="btn">Contact</button></a>
   </div>
 
   <img class="logo" src="xuancuong.gif" alt="Pibblock logo">
 
   <div class="button-group right">
-    <button class="btn">Projects</button>
-    <button class="btn">Contact</button>
+    <a href="https://www.washmabellay.freeddns.org"><button class="btn">Chat</button></a>
+    <a href="https://renai-circulation.freeddns.org"><button class="btn">Proxy</button></a>
   </div>
 </div>
 
@@ -253,11 +253,6 @@ document.addEventListener("mousemove", e=>{
   const x=(e.clientX/window.innerWidth-0.5)*10;
   const y=(e.clientY/window.innerHeight-0.5)*10;
   document.querySelector(".container").style.transform=`rotateY(${x}deg) rotateX(${-y}deg)`;
-});
-
-// Buttons interaction
-document.querySelectorAll(".btn").forEach(btn=>{
-  btn.addEventListener("click",()=>alert(`${btn.textContent} clicked!`));
 });
 </script>
 </body>
